@@ -1,0 +1,24 @@
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env.bak/
+venv.bak/
+
+# Logs and Outputs
+logs/
+outputs/
+*.log
+*.xlsx
+*.csv
+
+# Exceptions for datasets (if you want to keep a specific sample file tracked, you can use `!sample_products.xlsx` but generally ignore all)
+# Mac/Windows OS files
+.DS_Store
+Thumbs.db
+desktop.ini
