@@ -4,7 +4,7 @@ This project is an automated **Browser Agent** that mimics human browsing behavi
 
 ---
 
-## ??? How It Works (For Laymen)
+## ??? How It Works
 
 Most e-commerce websites (like Amazon, Flipkart, Croma, etc.) have strong security systems that immediately block automated programs from copying their data. They do this by checking if the visitor is a real web browser (like Google Chrome) or a line of code.
 
