@@ -4,7 +4,7 @@ This project is an automated **Browser Agent** that mimics human browsing behavi
 
 ---
 
-## ??? How It Works
+## How It Works
 
 Most e-commerce websites (like Amazon, Flipkart, Croma, etc.) have strong security systems that immediately block automated programs from copying their data. They do this by checking if the visitor is a real web browser (like Google Chrome) or a line of code.
 
@@ -22,7 +22,7 @@ Instead of sending raw, suspicious code requests, this script actually:
 
 ---
 
-## ?? Project Structure
+## Project Structure
 
 * **browser_agent.py** : The main brain. Run this file to start the agent!
 * **sample_products.xlsx** : The dataset format you should pass into the script. Needs columns like GeM Model and GeM Title.
@@ -33,7 +33,7 @@ Instead of sending raw, suspicious code requests, this script actually:
 
 ---
 
-## ?? How to Run
+## How to Run
 
 ### 1. Prerequisites
 Ensure you have Python installed on your computer.
