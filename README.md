@@ -1,68 +1,61 @@
-# Browser Agent Product Availability Checker
+# Item Price Checker
 
-This project is an automated **Browser Agent** that mimics human browsing behavior to search for product availability across the internet (via Google Search). Its primary goal is to take a bulk list of products (derived from an Excel sheet), search for them online without getting blocked by anti-bot systems (WAFs), evaluate whether the product is a match, and extract its price and link.
+Bulk-checks a list of products against live web search results to find the closest matching listing and its price.
 
----
+## What It Does
 
-## How It Works
+`browser_agent.py` reads a list of products from an Excel file (expected columns: `GeM Product ID`, `GeM Title`, `GeM Brand`, `GeM Model` — this project appears to target GeM/government-procurement product listings, matched against open-market prices) and, for each row:
 
-Most e-commerce websites (like Amazon, Flipkart, Croma, etc.) have strong security systems that immediately block automated programs from copying their data. They do this by checking if the visitor is a real web browser (like Google Chrome) or a line of code.
+1. Builds a search query from the product's model and title.
+2. Opens a real Chrome browser (via `undetected-chromedriver`) and runs a Google search for that query, to avoid basic bot-detection blocks.
+3. Visits the top 3 organic results and extracts each page's title (and an `h1`, if present).
+4. Compares the found title against the product's title/brand using simple token-overlap logic to classify the result as `exact`, `similar` (flagged for human review), or no match.
+5. Extracts a price from the page text with a regex looking for `₹`/`INR`/`Rs` amounts.
+6. Writes one row per product to an output `.xlsx` file (progress is also saved every 5 rows to a `_temp.xlsx` file), including match type, review flag, found title, price, and link.
 
-To solve this problem, this script uses a specialized driver called **undetected-chromedriver**. 
-Instead of sending raw, suspicious code requests, this script actually:
-1. **Opens a real, visible Google Chrome window** on your computer.
-2. **Types your search queries** into Google.
-3. Retrieves the top few organic Search Results.
-4. **Visits those websites natively** to check for the product.
-5. Uses **NLP (Natural Language Processing)** logic to compare your target product name against the title found on the website.
-    * If all major keywords match, it marks it as **Exact Match**.
-    * If only some keywords and the brand match, it marks it as **Similar Match** (flagged as "Needs Human Review").
-    * If the product is very different, it flags it as **Not Found**.
-6. Extracts the price and formats the data cleanly into a brand new Excel sheet.
+The class also contains fully-implemented `search_amazon` and `search_flipkart` methods (site-specific scraping of Amazon.in and Flipkart search results), but **only `search_google` is currently wired into `process_products()`** — the Amazon/Flipkart search paths exist in the code but are not called from the main flow.
 
----
+Running the script directly (`python browser_agent.py`) prompts interactively for an input Excel path and an output file name; there is no non-interactive/CLI-argument mode.
 
-## Project Structure
+## Tech Stack
 
-* **browser_agent.py** : The main brain. Run this file to start the agent!
-* **sample_products.xlsx** : The dataset format you should pass into the script. Needs columns like GeM Model and GeM Title.
-* **logs/** : This is where the script automatically stores detailed textual logs of every action it performed, what websites it visited, and why it decided an item was (or wasn't) a match. Keep this ignored from Git to avoid clutter.
-* **outputs/** : This is where all the generated Excel result files are stored once a search is completed.
+- Python 3
+- [`undetected-chromedriver`](https://github.com/ultrafunkamsterdam/undetected-chromedriver) + `selenium` (browser automation, imported and required by the code but **not currently listed** in `requirements.txt`)
+- `pandas` + `openpyxl` (reading/writing Excel files)
+- Standard library: `re`, `logging`, `random`, `time`, `urllib.parse`
 
-*(Note: Data sets, virtual environments (.venv/), and runtime outputs are safely configured in .gitignore so they won't bloat your GitHub repository)*
+## Setup
 
----
-
-## How to Run
-
-### 1. Prerequisites
-Ensure you have Python installed on your computer.
-You will also need the standard Google Chrome browser installed on your machine.
-
-### 2. Setup the Environment
-It is highly recommended to use a virtual environment so the required packages do not conflict with your main machine.
-
-Open your terminal in the project directory and run:
-``bash
-# Create the virtual environment
+```bash
 python -m venv .venv
+.\.venv\Scripts\Activate.ps1   # Windows PowerShell
 
-# Activate the virtual environment (Windows)
-.\.venv\Scripts\Activate.ps1
-``
-
-### 3. Install Dependencies
-Once the virtual environment is activated, install the required Python packages:
-``bash
 pip install -r requirements.txt
-# Alternatively, install them manually:
-pip install undetected_chromedriver selenium pandas openpyxl
-``
+pip install selenium undetected-chromedriver   # required by the script but missing from requirements.txt — see Status
+```
 
-### 4. Start the Agent!
-Simply run the Python script. It will prompt you for the pathway to your Excel sheet and what you want to name your output.
-``bash
+You also need a local install of Google Chrome, since the script drives a real, visible Chrome window.
+
+## Usage
+
+```bash
 python browser_agent.py
-``
+```
 
-Sit back, do not close the browser window that opens, and let the agent work! It will take human-style delays between page visits to ensure it is not detected as a bot.
+You'll be prompted for:
+- The path to an input `.xlsx` file with columns `GeM Product ID`, `GeM Title`, `GeM Brand`, `GeM Model` (falls back to positional columns 0-3 if those headers aren't found).
+- An output file name (defaults to `agent_results.xlsx`, written under `outputs/`).
+
+Do not close the Chrome window the script opens — it drives that window directly and adds randomized delays (2-6s) between actions to look human. Logs are written per-run to `logs/browser_agent_search_<timestamp>.log`.
+
+## Status: Work in progress
+
+This is a functional prototype with real gaps:
+
+- **`requirements.txt` is broken/incomplete.** It lists `requests`, `beautifulsoup4`, and `lxml`, none of which are imported anywhere in `browser_agent.py`. Conversely, `selenium` and `undetected-chromedriver` — both required by the script — are missing. The last two lines of the file (`cloudscraper`, `fake-useragent`) are also malformed, with a stray space inserted between every character, so `pip install -r requirements.txt` will not install a working environment as-is.
+- **Amazon and Flipkart scraping is implemented but dead code.** `search_amazon` and `search_flipkart` are complete methods with their own XPath selectors and match logic, but `process_products()` only calls `search_google`. It's unclear whether they were deprecated in favor of Google-only search or just not yet wired in.
+- **No sample input file is included.** The README previously referenced a `sample_products.xlsx`, but no such file exists in the repository, so there's nothing to run the script against out of the box.
+- **Fragile scraping selectors.** The Amazon/Flipkart/Google matching all rely on specific CSS classes and XPath expressions (e.g. Flipkart's `_30jeq3`, `_1AtVbE`) that change frequently on real sites and are not covered by any error recovery beyond generic try/except-and-skip.
+- **No automated tests.**
+
+In short: the core Google-search-and-match pipeline is present and reasonably careful (retry-free error handling around each site call, human-like delays, incremental progress saves), but the packaging (`requirements.txt`) needs fixing before a fresh clone will run, and the Amazon/Flipkart code paths are unused.
