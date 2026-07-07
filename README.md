@@ -20,7 +20,7 @@ Running the script directly (`python browser_agent.py`) prompts interactively fo
 ## Tech Stack
 
 - Python 3
-- [`undetected-chromedriver`](https://github.com/ultrafunkamsterdam/undetected-chromedriver) + `selenium` (browser automation, imported and required by the code but **not currently listed** in `requirements.txt`)
+- [`undetected-chromedriver`](https://github.com/ultrafunkamsterdam/undetected-chromedriver) + `selenium` (browser automation)
 - `pandas` + `openpyxl` (reading/writing Excel files)
 - Standard library: `re`, `logging`, `random`, `time`, `urllib.parse`
 
@@ -31,7 +31,6 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1   # Windows PowerShell
 
 pip install -r requirements.txt
-pip install selenium undetected-chromedriver   # required by the script but missing from requirements.txt — see Status
 ```
 
 You also need a local install of Google Chrome, since the script drives a real, visible Chrome window.
@@ -52,10 +51,9 @@ Do not close the Chrome window the script opens — it drives that window direct
 
 This is a functional prototype with real gaps:
 
-- **`requirements.txt` is broken/incomplete.** It lists `requests`, `beautifulsoup4`, and `lxml`, none of which are imported anywhere in `browser_agent.py`. Conversely, `selenium` and `undetected-chromedriver` — both required by the script — are missing. The last two lines of the file (`cloudscraper`, `fake-useragent`) are also malformed, with a stray space inserted between every character, so `pip install -r requirements.txt` will not install a working environment as-is.
 - **Amazon and Flipkart scraping is implemented but dead code.** `search_amazon` and `search_flipkart` are complete methods with their own XPath selectors and match logic, but `process_products()` only calls `search_google`. It's unclear whether they were deprecated in favor of Google-only search or just not yet wired in.
 - **No sample input file is included.** The README previously referenced a `sample_products.xlsx`, but no such file exists in the repository, so there's nothing to run the script against out of the box.
 - **Fragile scraping selectors.** The Amazon/Flipkart/Google matching all rely on specific CSS classes and XPath expressions (e.g. Flipkart's `_30jeq3`, `_1AtVbE`) that change frequently on real sites and are not covered by any error recovery beyond generic try/except-and-skip.
 - **No automated tests.**
 
-In short: the core Google-search-and-match pipeline is present and reasonably careful (retry-free error handling around each site call, human-like delays, incremental progress saves), but the packaging (`requirements.txt`) needs fixing before a fresh clone will run, and the Amazon/Flipkart code paths are unused.
+In short: the core Google-search-and-match pipeline is present and reasonably careful (retry-free error handling around each site call, human-like delays, incremental progress saves), but the Amazon/Flipkart code paths are unused.
