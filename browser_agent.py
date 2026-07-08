@@ -81,7 +81,7 @@ class BrowserAgentChecker:
             
         # 3. Check for SIMILAR match
         # If it doesn't match perfectly, but the brand matches and at least some key words match
-        brand_in_scraped = (brand_clean != 'n/a' and brand_clean in scraped_clean)
+        brand_in_scraped = (brand_clean not in ('n/a', 'nan', '') and brand_clean in scraped_clean)
         
         # How many significant words overlap?
         word_intersection = base_words.intersection(scraped_words)
