@@ -4,7 +4,6 @@ This is the only piece of pure matching logic in browser_agent.py; everything
 else drives a real Chrome browser. We call it as an unbound method so we don't
 have to spin up undetected-chromedriver just to exercise the string matching.
 """
-import math
 import sys
 from pathlib import Path
 
