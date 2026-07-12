@@ -60,3 +60,19 @@ def test_blank_brand_string_variants_excluded():
     for blank in ('n/a', 'nan', ''):
         assert match_quality(None, blank, 'alpha beta gamma delta epsilon zeta eta',
                               'nano version alpha beta signal tower unit') == 'none'
+
+
+def test_blank_title_does_not_false_match_everything():
+    """Regression test for a blank GeM Title matching any scraped title.
+
+    An empty excel_title makes '' a substring of every scraped title, and
+    str(float('nan')) == 'nan' is a substring of common words like 'banana'.
+    Either way a blank title must not be reported as an 'exact' match.
+    """
+    assert match_quality(None, 'N/A', '', 'totally unrelated random webpage title') == 'none'
+    assert match_quality(None, 'N/A', float('nan'), 'banana bread recipe website') == 'none'
+
+
+def test_blank_title_string_variants_excluded():
+    for blank in ('n/a', 'nan', ''):
+        assert match_quality(None, 'N/A', blank, 'banana bread recipe website') == 'none'

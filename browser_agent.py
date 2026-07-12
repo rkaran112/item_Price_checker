@@ -62,7 +62,14 @@ class BrowserAgentChecker:
         base_clean = str(excel_title).lower().strip()
         scraped_clean = str(scraped_title).lower().strip()
         brand_clean = str(excel_brand).lower().strip()
-        
+
+        # A blank title has nothing to match against. Without this guard, an
+        # empty string is a substring of everything, and 'nan' (str(float('nan')))
+        # is a substring of common words like 'banana' or 'financial', so a
+        # blank GeM Title would falsely report 'exact' for any scraped title.
+        if base_clean in ('', 'n/a', 'nan'):
+            return 'none'
+
         # 1. Explicit substring match -> EXACT
         if base_clean in scraped_clean:
             return 'exact'
