@@ -19,6 +19,8 @@ import logging
 from datetime import datetime
 import os
 
+from match_quality import get_match_quality
+
 # Ensure directories exist
 os.makedirs('logs', exist_ok=True)
 os.makedirs('outputs', exist_ok=True)
@@ -55,58 +57,11 @@ class BrowserAgentChecker:
 
     def _get_match_quality(self, excel_brand, excel_title, scraped_title):
         """
-        Check if the scraped title from the website is an exact match, 
+        Check if the scraped title from the website is an exact match,
         a similar match (needs human review), or none.
         Returns: 'exact', 'similar', or 'none'
         """
-        base_clean = str(excel_title).lower().strip()
-        scraped_clean = str(scraped_title).lower().strip()
-        brand_clean = str(excel_brand).lower().strip()
-
-        # A blank title has nothing to match against. Without this guard, an
-        # empty string is a substring of everything, and 'nan' (str(float('nan')))
-        # is a substring of common words like 'banana' or 'financial', so a
-        # blank GeM Title would falsely report 'exact' for any scraped title.
-        if base_clean in ('', 'n/a', 'nan'):
-            return 'none'
-
-        # 1. Explicit substring match -> EXACT
-        if base_clean in scraped_clean:
-            return 'exact'
-            
-        # Tokenize words
-        base_words = set(re.findall(r'\w+', base_clean))
-        scraped_words = set(re.findall(r'\w+', scraped_clean))
-        
-        # Exclude very common small words
-        stop_words = {'with', 'a', 'an', 'the', 'and', 'for', 'of', 'in'}
-        base_words = base_words - stop_words
-        
-        # 2. Token subset match (do all core words from excel exist in scraped title?) -> EXACT
-        if base_words and base_words.issubset(scraped_words):
-            return 'exact'
-            
-        # 3. Check for SIMILAR match
-        # If it doesn't match perfectly, but the brand matches and at least some key words match
-        brand_in_scraped = (brand_clean not in ('n/a', 'nan', '') and brand_clean in scraped_clean)
-        
-        # How many significant words overlap?
-        word_intersection = base_words.intersection(scraped_words)
-        
-        # If the brand matches, and we share at least 1 other significant word, consider it "similar"
-        # Or if we share at least 30% of the significant words for Google results since titles are truncated
-        if len(base_words) > 0:
-            match_ratio = len(word_intersection) / len(base_words)
-            logger.info(f"[DEBUG] Brand Match: {brand_in_scraped}, Intersection: {len(word_intersection)}, Ratio: {match_ratio:.2f}")
-            
-            # Very lenient similarity check so we don't miss products
-            if (brand_in_scraped and len(word_intersection) >= 2) or (match_ratio >= 0.3):
-                # Also if the match ratio is higher, call it exact if > 70% to avoid human review for everything
-                if match_ratio >= 0.6:
-                    return 'exact'
-                return 'similar'
-            
-        return 'none'
+        return get_match_quality(excel_brand, excel_title, scraped_title)
 
     def search_amazon(self, search_query, excel_brand, excel_title):
         """Search Amazon using human agent with specific title validation"""
