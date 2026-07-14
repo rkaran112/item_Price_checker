@@ -318,7 +318,17 @@ class BrowserAgentChecker:
                 # Prioritize GeM Model, then GeM Title for the search query
                 model_str = str(product_model).strip()
                 has_model = model_str.lower() not in ('n/a', 'nan', '')
-                search_query = f"{product_model} {product_title}".strip() if has_model else str(product_title)
+                title_str = str(product_title).strip()
+                has_title = title_str.lower() not in ('n/a', 'nan', '')
+
+                if has_model and has_title:
+                    search_query = f"{model_str} {title_str}"
+                elif has_model:
+                    search_query = model_str
+                elif has_title:
+                    search_query = title_str
+                else:
+                    search_query = ''
                 logger.info(f"\nProcessing '{search_query}'. Seeking specific match for title: '{product_title}'")
                 
                 google_res = self.search_google(search_query, product_brand, product_title)
