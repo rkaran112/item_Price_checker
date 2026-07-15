@@ -77,3 +77,18 @@ def test_blank_title_does_not_false_match_everything():
 def test_blank_title_string_variants_excluded():
     for blank in ('n/a', 'nan', ''):
         assert match_quality('N/A', blank, 'banana bread recipe website') == 'none'
+
+
+def test_brand_does_not_false_match_via_substring_collision():
+    """Regression test for brand matching via raw substring containment.
+
+    Brand 'Asus' is a substring of 'Pegasus', so a naive `brand in
+    scraped_title` check would treat an unrelated Pegasus running-shoes page
+    as sharing the brand with an Asus laptop, tipping an otherwise weak word
+    overlap into a false 'similar' verdict.
+    """
+    result = match_quality(
+        'Asus', 'Asus ROG Strix G15 Gaming Laptop Computer',
+        'Pegasus Laptop Computer Store Reviews Today Now',
+    )
+    assert result == 'none'

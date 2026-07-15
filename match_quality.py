@@ -42,7 +42,16 @@ def get_match_quality(excel_brand, excel_title, scraped_title):
 
     # 3. Check for SIMILAR match
     # If it doesn't match perfectly, but the brand matches and at least some key words match
-    brand_in_scraped = (brand_clean not in ('n/a', 'nan', '') and brand_clean in scraped_clean)
+    #
+    # Brand is matched by whole word, not raw substring: a plain `in` check
+    # would let e.g. brand 'Asus' falsely match a scraped title containing
+    # 'Pegasus' (which contains the substring 'asus'), same as the 'nan'
+    # substring issue this file already guards against for blank cells.
+    if brand_clean not in ('n/a', 'nan', ''):
+        brand_words = set(re.findall(r'\w+', brand_clean))
+        brand_in_scraped = brand_words.issubset(scraped_words)
+    else:
+        brand_in_scraped = False
 
     # How many significant words overlap?
     word_intersection = base_words.intersection(scraped_words)
