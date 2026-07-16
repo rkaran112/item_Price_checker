@@ -56,7 +56,7 @@ def get_match_quality(excel_brand, excel_title, scraped_title):
     # How many significant words overlap?
     word_intersection = base_words.intersection(scraped_words)
 
-    # If the brand matches, and we share at least 1 other significant word, consider it "similar"
+    # If the brand matches, and we share at least 2 other significant words, consider it "similar"
     # Or if we share at least 30% of the significant words for Google results since titles are truncated
     if len(base_words) > 0:
         match_ratio = len(word_intersection) / len(base_words)
