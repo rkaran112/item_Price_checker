@@ -43,6 +43,17 @@ def get_match_quality(excel_brand, excel_title, scraped_title):
     # 3. Check for SIMILAR match
     # If it doesn't match perfectly, but the brand matches and at least some key words match
     #
+    # Numbers (model numbers, storage sizes, screen sizes, etc.) are the most
+    # distinguishing part of a product title. Word-overlap ratio alone would
+    # call 'iPhone 13 Pro Max 128GB' a match for 'iPhone 14 Pro Max 128GB'
+    # since only one word out of five differs. If the excel title has a
+    # standalone number that's missing from the scraped title, treat it as a
+    # different product rather than exact/similar.
+    base_numbers = {w for w in base_words if w.isdigit()}
+    scraped_numbers = {w for w in scraped_words if w.isdigit()}
+    if base_numbers and not base_numbers.issubset(scraped_numbers):
+        return 'none'
+    #
     # Brand is matched by whole word, not raw substring: a plain `in` check
     # would let e.g. brand 'Asus' falsely match a scraped title containing
     # 'Pegasus' (which contains the substring 'asus'), same as the 'nan'

@@ -79,6 +79,21 @@ def test_blank_title_string_variants_excluded():
         assert match_quality('N/A', blank, 'banana bread recipe website') == 'none'
 
 
+def test_different_model_number_does_not_false_match():
+    """Regression test for word-overlap ratio ignoring a differing model number.
+
+    'iPhone 13 Pro Max 128GB' vs 'iPhone 14 Pro Max 128GB' only differs in one
+    word out of five (an 80% overlap), which the ratio-based similarity check
+    alone would call 'exact'. The model number is the whole point of the
+    title, so a scraped title missing it must not be treated as a match.
+    """
+    result = match_quality(
+        'Apple', 'iPhone 13 Pro Max 128GB',
+        'Apple iPhone 14 Pro Max 128GB Case Cover Buy Online',
+    )
+    assert result == 'none'
+
+
 def test_brand_does_not_false_match_via_substring_collision():
     """Regression test for brand matching via raw substring containment.
 
