@@ -94,6 +94,22 @@ def test_different_model_number_does_not_false_match():
     assert result == 'none'
 
 
+def test_short_model_number_does_not_false_match_via_substring_prefix():
+    """Regression test for a short number being a text-prefix of a longer one.
+
+    'iphone 1' is a literal substring of 'iphone 13 pro max 128gb' (the raw
+    substring check doesn't know '1' and '13' are different numbers, only
+    that the characters 'iphone 1' appear in sequence), so the plain
+    substring shortcut would call these an exact match despite being
+    different phones.
+    """
+    result = match_quality(
+        'Apple', 'iPhone 1',
+        'Apple iPhone 13 Pro Max 128GB - Amazon.in',
+    )
+    assert result == 'none'
+
+
 def test_brand_does_not_false_match_via_substring_collision():
     """Regression test for brand matching via raw substring containment.
 

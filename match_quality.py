@@ -24,10 +24,6 @@ def get_match_quality(excel_brand, excel_title, scraped_title):
     if base_clean in ('', 'n/a', 'nan'):
         return 'none'
 
-    # 1. Explicit substring match -> EXACT
-    if base_clean in scraped_clean:
-        return 'exact'
-
     # Tokenize words
     base_words = set(re.findall(r'\w+', base_clean))
     scraped_words = set(re.findall(r'\w+', scraped_clean))
@@ -36,23 +32,29 @@ def get_match_quality(excel_brand, excel_title, scraped_title):
     stop_words = {'with', 'a', 'an', 'the', 'and', 'for', 'of', 'in'}
     base_words = base_words - stop_words
 
-    # 2. Token subset match (do all core words from excel exist in scraped title?) -> EXACT
-    if base_words and base_words.issubset(scraped_words):
-        return 'exact'
-
-    # 3. Check for SIMILAR match
-    # If it doesn't match perfectly, but the brand matches and at least some key words match
-    #
     # Numbers (model numbers, storage sizes, screen sizes, etc.) are the most
-    # distinguishing part of a product title. Word-overlap ratio alone would
-    # call 'iPhone 13 Pro Max 128GB' a match for 'iPhone 14 Pro Max 128GB'
-    # since only one word out of five differs. If the excel title has a
+    # distinguishing part of a product title. This has to run before the
+    # substring/token-subset checks below, not just the ratio-based
+    # similarity check: a plain `in` check would call 'iPhone 13 Pro Max
+    # 128GB' a match for 'iPhone 1' too, since 'iphone 1' is a literal text
+    # prefix of 'iphone 13 pro max 128gb'. If the excel title has a
     # standalone number that's missing from the scraped title, treat it as a
     # different product rather than exact/similar.
     base_numbers = {w for w in base_words if w.isdigit()}
     scraped_numbers = {w for w in scraped_words if w.isdigit()}
     if base_numbers and not base_numbers.issubset(scraped_numbers):
         return 'none'
+
+    # 1. Explicit substring match -> EXACT
+    if base_clean in scraped_clean:
+        return 'exact'
+
+    # 2. Token subset match (do all core words from excel exist in scraped title?) -> EXACT
+    if base_words and base_words.issubset(scraped_words):
+        return 'exact'
+
+    # 3. Check for SIMILAR match
+    # If it doesn't match perfectly, but the brand matches and at least some key words match
     #
     # Brand is matched by whole word, not raw substring: a plain `in` check
     # would let e.g. brand 'Asus' falsely match a scraped title containing
