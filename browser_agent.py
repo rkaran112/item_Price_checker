@@ -13,13 +13,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
 import random
-import re
 from urllib.parse import quote_plus
 import logging
 from datetime import datetime
 import os
 
 from match_quality import get_match_quality
+from price_extraction import extract_price
 
 # Ensure directories exist
 os.makedirs('logs', exist_ok=True)
@@ -266,10 +266,7 @@ class BrowserAgentChecker:
                             body_elem = self.driver.find_element(By.TAG_NAME, "body")
                             # We just grab the first few thousand chars to avoid slow string processing
                             body_text = body_elem.text[:3000]
-                            # Regex finds ₹ or Rs followed by digits and commas
-                            price_match = re.search(r'(?:₹|INR|Rs\.?)\s*([\d,.]+)', body_text, re.IGNORECASE)
-                            if price_match:
-                                price = f"₹{price_match.group(1)}"
+                            price = extract_price(body_text)
                         except:
                             pass
 
