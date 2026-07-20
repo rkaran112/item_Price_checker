@@ -110,6 +110,19 @@ def test_short_model_number_does_not_false_match_via_substring_prefix():
     assert result == 'none'
 
 
+def test_model_number_alone_can_still_match_when_title_is_blank():
+    """Regression test for browser_agent.py's model-as-title fallback.
+
+    When a GeM row has a Model but a blank Title, browser_agent.py now uses
+    the model string itself as the match target (see process_products), since
+    get_match_quality always returns 'none' for a blank title. This confirms
+    that fallback actually produces a real match instead of 'none'.
+    """
+    result = match_quality('Acme', 'WidgetPro X200',
+                            'Acme WidgetPro X200 - Available Now')
+    assert result == 'exact'
+
+
 def test_brand_does_not_false_match_via_substring_collision():
     """Regression test for brand matching via raw substring containment.
 

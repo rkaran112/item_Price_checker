@@ -326,9 +326,16 @@ class BrowserAgentChecker:
                     search_query = title_str
                 else:
                     search_query = ''
-                logger.info(f"\nProcessing '{search_query}'. Seeking specific match for title: '{product_title}'")
-                
-                google_res = self.search_google(search_query, product_brand, product_title)
+
+                # get_match_quality treats a blank title as an automatic 'none',
+                # so when GeM Title is blank fall back to GeM Model as the
+                # match target. Otherwise rows with only a model number would
+                # always be reported "Not Found" even when the right product
+                # is on the page.
+                match_title = title_str if has_title else model_str
+                logger.info(f"\nProcessing '{search_query}'. Seeking specific match for title: '{match_title}'")
+
+                google_res = self.search_google(search_query, product_brand, match_title)
                 
                 # Check if human review is needed check match type
                 needs_review = 'Yes' if google_res.get('match_type') == 'similar' else 'No'
