@@ -32,3 +32,17 @@ def test_does_not_capture_trailing_sentence_punctuation():
     instead of '1200'.
     """
     assert extract_price('Buy now Rs. 1200. Free shipping available today') == '₹1200'
+
+
+def test_does_not_match_rs_inside_unrelated_word():
+    """Regression test for 'Rs'/'INR' matching without a word boundary.
+
+    The old regex had no boundary check before 'Rs'/'INR', so the literal
+    substring 'rs' inside common words like 'hours', 'hrs', or 'Mrs.' was
+    enough to trigger a match, sweeping up whatever unrelated number
+    happened to follow (e.g. a delivery estimate or review count) and
+    reporting it as the price.
+    """
+    assert extract_price('Ships within 24 hours 1500 people bought this') == 'N/A'
+    assert extract_price('Delivery in 2 hrs 800 reviews so far') == 'N/A'
+    assert extract_price('Mrs. Johnson ordered 3 units yesterday') == 'N/A'
