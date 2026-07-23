@@ -6,7 +6,7 @@ installing selenium.
 """
 import re
 
-_PRICE_RE = re.compile(r'(?:₹|\bINR|\bRs\.?)\s*([\d,]+(?:\.\d+)?)', re.IGNORECASE)
+_PRICE_RE = re.compile(r'(?:₹|\bINR|\bRs\.?)\s*(\d(?:[\d,]*\d)?(?:\.\d+)?)', re.IGNORECASE)
 
 
 def extract_price(text):

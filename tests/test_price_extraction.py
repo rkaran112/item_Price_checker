@@ -46,3 +46,15 @@ def test_does_not_match_rs_inside_unrelated_word():
     assert extract_price('Ships within 24 hours 1500 people bought this') == 'N/A'
     assert extract_price('Delivery in 2 hrs 800 reviews so far') == 'N/A'
     assert extract_price('Mrs. Johnson ordered 3 units yesterday') == 'N/A'
+
+
+def test_does_not_capture_trailing_comma():
+    """Regression test for a trailing comma being swept into the price.
+
+    The old pattern used [\\d,]+ for the whole amount, so a comma right
+    after the price but before the next clause (e.g. 'Rs. 1,200, free
+    shipping') was captured as part of the number, producing '1,200,'
+    instead of '1,200'.
+    """
+    assert extract_price('Price: Rs. 1,200, free shipping today') == '₹1,200'
+    assert extract_price('Only Rs 599, hurry up and order now') == '₹599'
